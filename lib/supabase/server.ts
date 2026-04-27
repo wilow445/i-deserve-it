@@ -1,26 +1,21 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+
+// Single-user mode: hardcoded Rebecca user ID
+export const REBECCA_USER_ID = "72e8c04e-dea1-49f5-a3b1-5a8db54523ab";
 
 export async function createClient() {
-  const cookieStore = await cookies();
-  return createServerClient(
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // setAll fails when called from a Server Component — safe to ignore
-          }
-        },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
       },
     }
   );
+}
+
+export async function getUser() {
+  return { id: REBECCA_USER_ID, email: "beccareekie@icloud.com" };
 }
