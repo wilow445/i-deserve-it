@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <radialGradient id="bg" cx="25%" cy="15%" r="130%">
+      <stop offset="0%" stop-color="#E27991"/>
+      <stop offset="35%" stop-color="#C8546B"/>
+      <stop offset="78%" stop-color="#8B2D40"/>
+      <stop offset="100%" stop-color="#5A1828"/>
+    </radialGradient>
+    <radialGradient id="sheen" cx="28%" cy="18%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.28)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <filter id="petalShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#5A1828" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- iOS-style squircle background (W3C-friendly rounded rect at ~22.5% radius) -->
+  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#bg)"/>
+
+  <!-- Inset highlight at top -->
+  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#sheen)"/>
+
+  <!-- Rose, scaled to 1024 viewBox: original was 64, so multiply by 16 -->
+  <g transform="translate(512 512)" filter="url(#petalShadow)">
+    <!-- Outer 5 petals -->
+    <g fill="#FBF6F0">
+      <path d="M 0 -48 C -144 -160 -160 -320 0 -400 C 160 -320 144 -160 0 -48 Z"/>
+      <path d="M 0 -48 C -144 -160 -160 -320 0 -400 C 160 -320 144 -160 0 -48 Z" transform="rotate(72)"/>
+      <path d="M 0 -48 C -144 -160 -160 -320 0 -400 C 160 -320 144 -160 0 -48 Z" transform="rotate(144)"/>
+      <path d="M 0 -48 C -144 -160 -160 -320 0 -400 C 160 -320 144 -160 0 -48 Z" transform="rotate(216)"/>
+      <path d="M 0 -48 C -144 -160 -160 -320 0 -400 C 160 -320 144 -160 0 -48 Z" transform="rotate(288)"/>
+    </g>
+
+    <!-- Inner 5 petals offset 36° -->
+    <g fill="#FFFFFF">
+      <path d="M 0 -32 C -96 -112 -112 -208 0 -240 C 112 -208 96 -112 0 -32 Z" transform="rotate(36)"/>
+      <path d="M 0 -32 C -96 -112 -112 -208 0 -240 C 112 -208 96 -112 0 -32 Z" transform="rotate(108)"/>
+      <path d="M 0 -32 C -96 -112 -112 -208 0 -240 C 112 -208 96 -112 0 -32 Z" transform="rotate(180)"/>
+      <path d="M 0 -32 C -96 -112 -112 -208 0 -240 C 112 -208 96 -112 0 -32 Z" transform="rotate(252)"/>
+      <path d="M 0 -32 C -96 -112 -112 -208 0 -240 C 112 -208 96 -112 0 -32 Z" transform="rotate(324)"/>
+    </g>
+
+    <!-- Bud center -->
+    <circle r="67" fill="#FBF6F0"/>
+    <circle r="38" fill="#8B2D40"/>
+  </g>
+</svg>
