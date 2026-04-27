@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, REBECCA_USER_ID } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
   const body = await request.json();
   const { endpoint, keys, userAgent } = body;
   if (!endpoint || !keys?.p256dh || !keys?.auth) {
@@ -16,7 +13,7 @@ export async function POST(request: Request) {
     .from("push_subscriptions")
     .upsert(
       {
-        user_id: user.id,
+        user_id: REBECCA_USER_ID,
         endpoint,
         p256dh: keys.p256dh,
         auth: keys.auth,
