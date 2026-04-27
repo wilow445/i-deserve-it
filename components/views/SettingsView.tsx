@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, BellOff, LogOut, Loader2, Check, AlertCircle, Send } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Bell, BellOff, Loader2, AlertCircle, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/ui/Header";
 import { Ornament, SectionLabel } from "@/components/ui/Ornament";
@@ -12,7 +11,7 @@ import { subscribeToPush, unsubscribeFromPush } from "@/lib/push";
 interface Schedule {
   id: string;
   category: Exclude<Category, "general">;
-  time_of_day: string; // "HH:MM:SS"
+  time_of_day: string;
   enabled: boolean;
 }
 
@@ -29,7 +28,6 @@ export function SettingsView({
   initialSchedules,
   initialPushEnabled,
 }: Props) {
-  const router = useRouter();
   const supabase = createClient();
   const [schedules, setSchedules] = useState<Schedule[]>(() =>
     SCHEDULABLE_CATEGORIES.map(
@@ -61,9 +59,7 @@ export function SettingsView({
     const current = schedules.find((s) => s.category === category)!;
     const next = { ...current, ...patch };
 
-    // Upsert: if no id, create; otherwise update
-    const tz =
-      Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
     const { data, error } = await supabase
       .from("notification_schedules")
       .upsert(
@@ -129,11 +125,6 @@ export function SettingsView({
     setTimeout(() => setTestResult(null), 4000);
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
   return (
     <>
       <Header view="settings" />
@@ -145,7 +136,6 @@ export function SettingsView({
           </h1>
         </div>
 
-        {/* Push notifications enable/disable */}
         <div className="anim-fade-2">
           <SectionLabel>Notifications</SectionLabel>
           <div
@@ -185,170 +175,4 @@ export function SettingsView({
 
             {pushError && (
               <div
-                className="mt-4 rounded-xl p-3 flex items-start gap-2 text-[12px] leading-relaxed"
-                style={{ background: "var(--blush-soft)", color: "var(--rose-deep)" }}
-              >
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>{pushError}</span>
-              </div>
-            )}
-
-            {pushEnabled && (
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <button
-                  onClick={sendTest}
-                  disabled={testSending}
-                  className="text-[12px] flex items-center gap-1.5"
-                  style={{ color: "var(--rose-deep)" }}
-                >
-                  {testSending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <Send className="w-3 h-3" />
-                  )}
-                  <span>Envoyer une notif test</span>
-                </button>
-                {testResult && (
-                  <span className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
-                    {testResult}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Schedule pickers */}
-        <div className="anim-fade-3">
-          <SectionLabel>Horaires</SectionLabel>
-          <p className="text-[13px] mb-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>
-            Choisis quand tu veux recevoir une phrase pour chaque moment de la journée. Désactive ce que tu ne veux pas.
-          </p>
-          <div className="space-y-2">
-            {schedules.map((sched) => (
-              <ScheduleRow
-                key={sched.category}
-                schedule={sched}
-                onToggle={(enabled) => updateSchedule(sched.category, { enabled })}
-                onTimeChange={(time) => updateSchedule(sched.category, { time_of_day: time + ":00" })}
-                saving={savingId === sched.category}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="anim-fade-4" style={{ color: "var(--rose-deep)" }}>
-          <Ornament width={40} opacity={0.4} />
-        </div>
-
-        {/* Account */}
-        <div className="anim-fade-4">
-          <SectionLabel>Compte</SectionLabel>
-          <div
-            className="rounded-2xl p-5 border flex items-center justify-between"
-            style={{ background: "var(--surface)", borderColor: "var(--line)" }}
-          >
-            <div>
-              <div className="caps" style={{ color: "var(--ink-muted)" }}>Connectée en tant que</div>
-              <div className="font-display text-[16px] mt-1" style={{ color: "var(--ink)" }}>
-                {email}
-              </div>
-            </div>
-            <button
-              onClick={signOut}
-              className="rounded-full px-4 py-2 text-[12px] font-medium flex items-center gap-1.5 border"
-              style={{ borderColor: "var(--line)", color: "var(--ink-soft)" }}
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Déconnexion</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function ScheduleRow({
-  schedule,
-  onToggle,
-  onTimeChange,
-  saving,
-}: {
-  schedule: Schedule;
-  onToggle: (enabled: boolean) => void;
-  onTimeChange: (time: string) => void;
-  saving: boolean;
-}) {
-  const label = CATEGORIES[schedule.category].label;
-  // Convert "HH:MM:SS" to "HH:MM" for input
-  const timeValue = schedule.time_of_day.slice(0, 5);
-
-  return (
-    <div
-      className="rounded-2xl p-4 border flex items-center justify-between gap-3"
-      style={{
-        background: "var(--surface)",
-        borderColor: "var(--line)",
-        opacity: schedule.enabled ? 1 : 0.55,
-        transition: "opacity 0.3s var(--ease-out)",
-      }}
-    >
-      <div className="flex-1">
-        <div className="font-display text-[16px]" style={{ color: "var(--ink)" }}>
-          {label}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <input
-          type="time"
-          value={timeValue}
-          disabled={!schedule.enabled}
-          onChange={(e) => onTimeChange(e.target.value)}
-          className="rounded-xl px-3 py-2 text-[15px] font-display border outline-none disabled:opacity-50"
-          style={{
-            background: "var(--bg)",
-            borderColor: "var(--line)",
-            color: "var(--ink)",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        />
-
-        <button
-          onClick={() => onToggle(!schedule.enabled)}
-          className="relative rounded-full transition-colors"
-          style={{
-            width: 40,
-            height: 24,
-            background: schedule.enabled ? "var(--rose)" : "var(--line)",
-          }}
-          aria-label={schedule.enabled ? "Désactiver" : "Activer"}
-        >
-          <span
-            className="absolute top-0.5 rounded-full bg-white"
-            style={{
-              width: 20,
-              height: 20,
-              left: schedule.enabled ? 18 : 2,
-              transition: "left 0.3s var(--ease-out-quint)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-            }}
-          />
-        </button>
-
-        <span
-          className="w-3 h-3 flex items-center justify-center"
-          style={{
-            opacity: saving ? 1 : 0,
-            transition: "opacity 0.3s",
-          }}
-        >
-          {saving ? (
-            <Loader2 className="w-3 h-3 animate-spin" style={{ color: "var(--ink-muted)" }} />
-          ) : null}
-        </span>
-      </div>
-    </div>
-  );
-}
+                class
