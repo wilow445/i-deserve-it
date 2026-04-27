@@ -1,21 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { createClient, REBECCA_USER_ID } from "@/lib/supabase/server";
 import { ProgressView } from "@/components/views/ProgressView";
 
 export default async function ProgressPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
   const { data: weighIns } = await supabase
     .from("weigh_ins")
     .select("date, weight")
-    .eq("user_id", user.id)
+    .eq("user_id", REBECCA_USER_ID)
     .order("date");
 
   return (
     <ProgressView
-      userId={user.id}
+      userId={REBECCA_USER_ID}
       initialWeighIns={(weighIns ?? []).map((w) => ({ date: w.date, weight: Number(w.weight) }))}
     />
   );
