@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 
 const CATEGORY_CONTEXT: Record<string, string> = {
   morning: "le matin pour bien démarrer la journée",
@@ -11,10 +10,6 @@ const CATEGORY_CONTEXT: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
   const { category } = await request.json();
   const ctx = CATEGORY_CONTEXT[category] || CATEGORY_CONTEXT.general;
 
