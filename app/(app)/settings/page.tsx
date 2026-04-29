@@ -1,6 +1,9 @@
 import { createClient, REBECCA_USER_ID } from "@/lib/supabase/server";
 import { SettingsView } from "@/components/views/SettingsView";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function SettingsPage() {
   const supabase = await createClient();
 
