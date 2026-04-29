@@ -1,6 +1,9 @@
 import { createClient, REBECCA_USER_ID } from "@/lib/supabase/server";
 import { AffirmationsView } from "@/components/views/AffirmationsView";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AffirmationsPage() {
   const supabase = await createClient();
   const { data: customs } = await supabase
