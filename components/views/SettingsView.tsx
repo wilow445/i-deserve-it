@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, BellOff, Loader2, AlertCircle, Send } from "lucide-react";
+import { Bell, BellOff, Loader2, AlertCircle, Send, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/ui/Header";
 import { Ornament, SectionLabel } from "@/components/ui/Ornament";
@@ -46,19 +46,11 @@ export function SettingsView({
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
 
-  async function updateSchedule(
-    category: Schedule["category"],
-    patch: Partial<Pick<Schedule, "time_of_day" | "enabled">>
-  ) {
-    setSavingId(category);
-    setSchedules((prev) =>
-      prev.map((s) => (s.category === category ? { ...s, ...patch } : s))
-    );
-
-    const current = schedules.find((s) => s.category === category)!;
-    const next = { ...current, ...patch };
-
+  async function persist(next: Schedule) {
+    setSavingId(next.category);
+    setSavedId(null);
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
     const { data, error } = await supabase
       .from("notification_schedules")
@@ -77,10 +69,21 @@ export function SettingsView({
 
     if (!error && data) {
       setSchedules((prev) =>
-        prev.map((s) => (s.category === category ? { ...s, id: data.id } : s))
+        prev.map((s) => (s.category === next.category ? { ...s, id: data.id } : s))
       );
+      setSavedId(next.category);
+      setTimeout(() => setSavedId((c) => (c === next.category ? null : c)), 2000);
     }
     setSavingId(null);
+  }
+
+  function updateLocal(
+    category: Schedule["category"],
+    patch: Partial<Pick<Schedule, "time_of_day" | "enabled">>
+  ) {
+    setSchedules((prev) =>
+      prev.map((s) => (s.category === category ? { ...s, ...patch } : s))
+    );
   }
 
   async function handleEnablePush() {
@@ -128,7 +131,7 @@ export function SettingsView({
   return (
     <>
       <Header view="settings" />
-      <div className="space-y-6 pt-2 view-transition">
+      <div className="space-y-7 pt-2 view-transition">
         <div className="anim-fade">
           <div className="caps" style={{ color: "var(--ink-muted)" }}>Réglages</div>
           <h1 className="font-display text-[34px] leading-[1.05] mt-1.5">
@@ -139,15 +142,15 @@ export function SettingsView({
         <div className="anim-fade-2">
           <SectionLabel>Notifications</SectionLabel>
           <div
-            className="rounded-2xl p-5 border"
+            className="rounded-3xl p-6 border"
             style={{ background: "var(--surface)", borderColor: "var(--line)" }}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <div className="font-display text-[18px] italic" style={{ color: "var(--ink)" }}>
+                <div className="font-display text-[19px] italic" style={{ color: "var(--ink)" }}>
                   {pushEnabled ? "Activées sur cet appareil" : "Pas encore activées"}
                 </div>
-                <p className="text-[13px] mt-1 leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+                <p className="text-[14px] mt-1.5 leading-relaxed" style={{ color: "var(--ink-soft)" }}>
                   {pushEnabled
                     ? "Tu recevras tes affirmations aux horaires choisis ci-dessous."
                     : "Active pour recevoir tes phrases du jour aux moments-clés."}
@@ -156,18 +159,19 @@ export function SettingsView({
               <button
                 onClick={pushEnabled ? handleDisablePush : handleEnablePush}
                 disabled={pushBusy}
-                className="rounded-full px-4 py-2 text-[12px] font-medium flex items-center gap-1.5 disabled:opacity-50"
+                className="rounded-full px-5 py-3 text-[14px] font-medium flex items-center gap-2 disabled:opacity-50 flex-shrink-0"
                 style={{
                   background: pushEnabled ? "var(--blush-soft)" : "var(--ink)",
                   color: pushEnabled ? "var(--rose-deep)" : "#FBF6F0",
+                  minHeight: 44,
                 }}
               >
                 {pushBusy ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : pushEnabled ? (
-                  <BellOff className="w-3.5 h-3.5" />
+                  <BellOff className="w-4 h-4" />
                 ) : (
-                  <Bell className="w-3.5 h-3.5" />
+                  <Bell className="w-4 h-4" />
                 )}
                 <span>{pushEnabled ? "Désactiver" : "Activer"}</span>
               </button>
@@ -175,7 +179,7 @@ export function SettingsView({
 
             {pushError && (
               <div
-                className="mt-4 rounded-xl p-3 flex items-start gap-2 text-[12px] leading-relaxed"
+                className="mt-4 rounded-2xl p-4 flex items-start gap-2 text-[13px] leading-relaxed"
                 style={{ background: "var(--blush-soft)", color: "var(--rose-deep)" }}
               >
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -184,22 +188,22 @@ export function SettingsView({
             )}
 
             {pushEnabled && (
-              <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="mt-5 flex items-center justify-between gap-3">
                 <button
                   onClick={sendTest}
                   disabled={testSending}
-                  className="text-[12px] flex items-center gap-1.5"
-                  style={{ color: "var(--rose-deep)" }}
+                  className="text-[14px] flex items-center gap-2 py-2 px-3 -mx-3 rounded-xl"
+                  style={{ color: "var(--rose-deep)", minHeight: 40 }}
                 >
                   {testSending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Send className="w-3 h-3" />
+                    <Send className="w-4 h-4" />
                   )}
                   <span>Envoyer une notif test</span>
                 </button>
                 {testResult && (
-                  <span className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
+                  <span className="text-[12px]" style={{ color: "var(--ink-muted)" }}>
                     {testResult}
                   </span>
                 )}
@@ -210,17 +214,24 @@ export function SettingsView({
 
         <div className="anim-fade-3">
           <SectionLabel>Horaires</SectionLabel>
-          <p className="text-[13px] mb-3 leading-relaxed" style={{ color: "var(--ink-soft)" }}>
+          <p className="text-[14px] mb-4 leading-relaxed" style={{ color: "var(--ink-soft)" }}>
             Choisis quand tu veux recevoir une phrase pour chaque moment de la journée. Désactive ce que tu ne veux pas.
           </p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {schedules.map((sched) => (
               <ScheduleRow
                 key={sched.category}
                 schedule={sched}
-                onToggle={(enabled) => updateSchedule(sched.category, { enabled })}
-                onTimeChange={(time) => updateSchedule(sched.category, { time_of_day: time + ":00" })}
+                onToggle={(enabled) => {
+                  updateLocal(sched.category, { enabled });
+                  persist({ ...sched, enabled });
+                }}
+                onTimeChange={(time) =>
+                  updateLocal(sched.category, { time_of_day: time + ":00" })
+                }
+                onSave={() => persist(sched)}
                 saving={savingId === sched.category}
+                saved={savedId === sched.category}
               />
             ))}
           </div>
@@ -242,12 +253,16 @@ function ScheduleRow({
   schedule,
   onToggle,
   onTimeChange,
+  onSave,
   saving,
+  saved,
 }: {
   schedule: Schedule;
   onToggle: (enabled: boolean) => void;
   onTimeChange: (time: string) => void;
+  onSave: () => void;
   saving: boolean;
+  saved: boolean;
 }) {
   const label = CATEGORIES[schedule.category].label;
   const timeValue = schedule.time_of_day.slice(0, 5);
@@ -262,58 +277,63 @@ function ScheduleRow({
         transition: "opacity 0.3s var(--ease-out)",
       }}
     >
-      <div className="flex-1">
-        <div className="font-display text-[16px]" style={{ color: "var(--ink)" }}>
+      <div className="flex-1 min-w-0">
+        <div className="font-display text-[17px]" style={{ color: "var(--ink)" }}>
           {label}
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 flex-shrink-0">
         <input
           type="time"
           value={timeValue}
           disabled={!schedule.enabled}
           onChange={(e) => onTimeChange(e.target.value)}
-          className="rounded-xl px-3 py-2 text-[15px] font-display border outline-none disabled:opacity-50"
+          onBlur={onSave}
+          className="rounded-xl px-3 py-2.5 text-[18px] font-display border outline-none disabled:opacity-50"
           style={{
             background: "var(--bg)",
             borderColor: "var(--line)",
             color: "var(--ink)",
             fontVariantNumeric: "tabular-nums",
+            minHeight: 44,
+            minWidth: 90,
           }}
         />
 
         <button
           onClick={() => onToggle(!schedule.enabled)}
-          className="relative rounded-full transition-colors"
+          className="relative rounded-full transition-colors flex-shrink-0"
           style={{
-            width: 40,
-            height: 24,
+            width: 56,
+            height: 32,
             background: schedule.enabled ? "var(--rose)" : "var(--line)",
           }}
           aria-label={schedule.enabled ? "Désactiver" : "Activer"}
         >
           <span
-            className="absolute top-0.5 rounded-full bg-white"
+            className="absolute top-1 rounded-full bg-white"
             style={{
-              width: 20,
-              height: 20,
-              left: schedule.enabled ? 18 : 2,
+              width: 24,
+              height: 24,
+              left: schedule.enabled ? 28 : 4,
               transition: "left 0.3s var(--ease-out-quint)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
             }}
           />
         </button>
 
         <span
-          className="w-3 h-3 flex items-center justify-center"
+          className="w-5 h-5 flex items-center justify-center flex-shrink-0"
           style={{
-            opacity: saving ? 1 : 0,
+            opacity: saving || saved ? 1 : 0,
             transition: "opacity 0.3s",
           }}
         >
           {saving ? (
-            <Loader2 className="w-3 h-3 animate-spin" style={{ color: "var(--ink-muted)" }} />
+            <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--ink-muted)" }} />
+          ) : saved ? (
+            <Check className="w-4 h-4" style={{ color: "var(--rose-deep)" }} />
           ) : null}
         </span>
       </div>
