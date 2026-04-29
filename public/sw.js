@@ -17,17 +17,13 @@ self.addEventListener("push", (event) => {
   }
 
   const options = {
-    body: data.body,
+    body: data.body || " ",
     icon: "/icon-192.png",
     badge: "/icon-192.png",
-    tag: data.tag || "i-deserve-it",
-    renotify: !!data.tag,
     data: { url: data.url || "/" },
-    vibrate: [80, 40, 80],
-    requireInteraction: false,
   };
 
-  event.waitUntil(self.registration.showNotification(data.title, options));
+  event.waitUntil(self.registration.showNotification(data.title || "I Deserve It", options));
 });
 
 self.addEventListener("notificationclick", (event) => {
