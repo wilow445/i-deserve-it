@@ -3,6 +3,9 @@ import { TodayView } from "@/components/views/TodayView";
 import { todayISO } from "@/lib/utils";
 import type { Affirmation } from "@/lib/affirmations";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function HomePage() {
   const supabase = await createClient();
   const userId = REBECCA_USER_ID;
