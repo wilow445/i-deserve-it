@@ -1,6 +1,9 @@
 import { createClient, REBECCA_USER_ID } from "@/lib/supabase/server";
 import { PlanView } from "@/components/views/PlanView";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function PlanPage() {
   const supabase = await createClient();
   const { data: weighIns } = await supabase
