@@ -127,7 +127,6 @@ export async function GET(request: Request) {
       title: categoryLabel,
       body: pick.text,
       url: "/",
-      tag: `${sched.category}-${localDate}`,
     });
 
     for (const s of subs) {
